@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASCII Webcam</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #ascii-container {
+            white-space: pre;
+            line-height: 1;
+            letter-spacing: 0;
+            font-size: 8px;
+            text-align: center;
+            margin: 20px auto;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #fff;
+            z-index: 100;
+            max-width: 250px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 8px;
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        button:hover, select:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        #video {
+            display: none;
+        }
+
+        canvas {
+            display: none;
+        }
+
+        .value-display {
+            color: #fff;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        #start-btn {
+            font-size: 14px;
+            padding: 12px;
+            font-weight: bold;
+        }
+
+        .info {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #fff;
+            font-size: 11px;
+            max-width: 300px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #fff;
+            text-shadow: 0 0 10px #fff;
+            min-height: 30px;
+        }
+        
+        .cursor {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <h1>ASCII WEBCAM</h1>
+    
+    <div id="ascii-container"></div>
+    
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    
+    <div class="controls">
+        <button id="start-btn">INICIAR CÁMARA</button>
+        
+        <div class="control-group">
+            <label for="resolution">Resolución</label>
+            <input type="range" id="resolution" min="40" max="200" value="120">
+            <div class="value-display" id="resolution-value">120</div>
+        </div>
+        
+        <div class="control-group">
+            <label for="fontSize">Tamaño de fuente</label>
+            <input type="range" id="fontSize" min="4" max="16" value="10">
+            <div class="value-display" id="fontSize-value">10px</div>
+        </div>
+        
+        <div class="control-group">
+            <label for="charset">Set de caracteres</label>
+            <select id="charset">
+                <option value="dense">Denso (@ % # * + = - : .)</option>
+                <option value="simple">Simple (█ ▓ ▒ ░  )</option>
+                <option value="classic">Clásico</option>
+                <option value="minimal">Minimal (█ ▄ ▀  )</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="colorMode">Modo de color</label>
+            <select id="colorMode">
+                <option value="white">Blanco/Negro</option>
+                <option value="green">Verde terminal</option>
+                <option value="color">Color</option>
+                <option value="inverted">Invertido</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="contrast">Contraste</label>
+            <input type="range" id="contrast" min="50" max="200" value="125">
+            <div class="value-display" id="contrast-value">125%</div>
+        </div>
+        
+        <button id="copy-btn">COPIAR ASCII</button>
+    </div>
+    
+    <div class="info">
+        <strong>ASCII Webcam Converter</strong><br>
+        De tu cámara en tiempo real a ASCII.<br><br>
+        Made with ❤️ by María Moreno
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const asciiContainer = document.getElementById('ascii-container');
+        const startBtn = document.getElementById('start-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const h1 = document.querySelector('h1');
+        
+        // Typewriter effect for title
+        const titleText = 'ASCII WEBCAM';
+        let titleIndex = 0;
+        h1.textContent = '';
+        
+        function typeTitle() {
+            if (titleIndex < titleText.length) {
+                h1.textContent += titleText.charAt(titleIndex);
+                titleIndex++;
+                setTimeout(typeTitle, 100);
+            } else {
+                h1.innerHTML += '<span class="cursor">_</span>';
+            }
+        }
+        
+        typeTitle();
+        
+        // Charset definitions
+        const charsets = {
+            dense: ['@', '%', '#', '*', '+', '=', '-', ':', '.', ' '],
+            simple: ['█', '▓', '▒', '░', ' '],
+            classic: '@%#*+=:-. '.split(''),
+            minimal: ['█', '▄', '▀', ' ']
+        };
+        
+        let currentCharset = charsets.dense;
+        let resolution = 120;
+        let fontSize = 10;
+        let colorMode = 'white';
+        let contrast = 125;
+        let isRunning = false;
+        let stream = null;
+        let currentAsciiText = '';
+        
+        // Set initial font size
+        asciiContainer.style.fontSize = fontSize + 'px';
+        
+        // Controls
+        document.getElementById('resolution').addEventListener('input', (e) => {
+            resolution = parseInt(e.target.value);
+            document.getElementById('resolution-value').textContent = resolution;
+        });
+        
+        document.getElementById('fontSize').addEventListener('input', (e) => {
+            fontSize = parseInt(e.target.value);
+            document.getElementById('fontSize-value').textContent = fontSize + 'px';
+            asciiContainer.style.fontSize = fontSize + 'px';
+        });
+        
+        document.getElementById('charset').addEventListener('change', (e) => {
+            const selected = e.target.value;
+            currentCharset = Array.isArray(charsets[selected]) ? charsets[selected] : charsets[selected].split('');
+        });
+        
+        document.getElementById('colorMode').addEventListener('change', (e) => {
+            colorMode = e.target.value;
+            updateColorMode();
+        });
+        
+        document.getElementById('contrast').addEventListener('input', (e) => {
+            contrast = parseInt(e.target.value);
+            document.getElementById('contrast-value').textContent = contrast + '%';
+        });
+        
+        copyBtn.addEventListener('click', () => {
+            if (currentAsciiText) {
+                navigator.clipboard.writeText(currentAsciiText).then(() => {
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = '✓ COPIADO';
+                    copyBtn.style.background = '#0f0';
+                    copyBtn.style.color = '#000';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.background = '#000';
+                        copyBtn.style.color = '#fff';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Error al copiar:', err);
+                    alert('No se pudo copiar al portapapeles');
+                });
+            } else {
+                alert('No hay contenido ASCII para copiar. Inicia la cámara primero.');
+            }
+        });
+        
+        function updateColorMode() {
+            switch(colorMode) {
+                case 'green':
+                    document.body.style.background = '#000';
+                    asciiContainer.style.color = '#0f0';
+                    break;
+                case 'white':
+                    document.body.style.background = '#000';
+                    asciiContainer.style.color = '#fff';
+                    break;
+                case 'color':
+                    document.body.style.background = '#000';
+                    asciiContainer.style.color = '';
+                    break;
+                case 'inverted':
+                    document.body.style.background = '#fff';
+                    asciiContainer.style.color = '#000';
+                    break;
+            }
+        }
+        
+        startBtn.addEventListener('click', async () => {
+            if (!isRunning) {
+                await startCamera();
+            } else {
+                stopCamera();
+            }
+        });
+        
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                video.srcObject = stream;
+                
+                video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    isRunning = true;
+                    startBtn.textContent = 'DETENER CÁMARA';
+                    startBtn.style.background = '#f00';
+                    startBtn.style.borderColor = '#f00';
+                    startBtn.style.color = '#fff';
+                    render();
+                });
+            } catch (err) {
+                console.error('Error al acceder a la cámara:', err);
+                alert('No se pudo acceder a la cámara. Por favor, permite el acceso.');
+            }
+        }
+        
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            isRunning = false;
+            startBtn.textContent = 'INICIAR CÁMARA';
+            startBtn.style.background = '#000';
+            startBtn.style.borderColor = '#fff';
+            startBtn.style.color = '#fff';
+            asciiContainer.textContent = '';
+            currentAsciiText = '';
+        }
+        
+        function render() {
+            if (!isRunning) return;
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const asciiWidth = resolution;
+            const asciiHeight = Math.floor(resolution * (canvas.height / canvas.width) * 0.5);
+            
+            let asciiImage = '';
+            let plainTextAscii = '';
+            
+            for (let y = 0; y < asciiHeight; y++) {
+                let row = '';
+                let plainRow = '';
+                for (let x = 0; x < asciiWidth; x++) {
+                    const pixelX = Math.floor((x / asciiWidth) * canvas.width);
+                    const pixelY = Math.floor((y / asciiHeight) * canvas.height);
+                    
+                    const pixelData = ctx.getImageData(pixelX, pixelY, 1, 1).data;
+                    const r = pixelData[0];
+                    const g = pixelData[1];
+                    const b = pixelData[2];
+                    
+                    // Calculate brightness
+                    const brightness = (r + g + b) / 3;
+                    const adjustedBrightness = Math.min(255, (brightness * contrast) / 100);
+                    
+                    const charIndex = Math.floor((adjustedBrightness / 255) * (currentCharset.length - 1));
+                    const char = currentCharset[currentCharset.length - 1 - charIndex];
+                    
+                    plainRow += char;
+                    
+                    if (colorMode === 'color') {
+                        row += `<span style="color:rgb(${r},${g},${b})">${char}</span>`;
+                    } else {
+                        row += char;
+                    }
+                }
+                asciiImage += row + '\n';
+                plainTextAscii += plainRow + '\n';
+            }
+            
+            asciiContainer.innerHTML = asciiImage;
+            currentAsciiText = plainTextAscii;
+            
+            requestAnimationFrame(render);
+        }
+    </script>
+</body>
+</html>
