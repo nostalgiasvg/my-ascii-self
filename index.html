@@ -898,7 +898,7 @@
                 // Draw ASCII content - calculate actual dimensions at 2x font size
                 const lines = asciiClone.textContent.split('\n').filter(line => line.length > 0);
                 const scaledFontSize = fontSize * 2; // Font size for 4K
-                const charHeight = scaledFontSize * 1.2;
+                const charHeight = scaledFontSize * 1.0; // line-height: 1 (matching CSS)
                 const totalAsciiHeight = lines.length * charHeight;
                 const captionSpacing = 240; // Increased spacing to accommodate larger gap (120px) + caption height
                 
