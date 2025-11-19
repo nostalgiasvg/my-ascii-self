@@ -367,6 +367,20 @@
     </style>
 </head>
 <body>
+    <!-- Mobile Notice Overlay -->
+    <div id="mobile-notice" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(26, 26, 26, 0.98); z-index: 10001; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center;">
+        <div style="max-width: 400px;">
+            <h2 style="font-size: 24px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px;">⚠️ AVISO</h2>
+            <p style="font-size: 14px; line-height: 1.6; margin-bottom: 30px; opacity: 0.9;">
+                Esta experiencia está optimizada para dispositivos más grandes (ordenador o tablet).<br><br>
+                Puedes continuar en móvil, pero algunas funciones pueden no comportarse como se espera.
+            </p>
+            <button id="close-notice" style="padding: 12px 24px; background: #fff; color: #1a1a1a; border: none; font-family: 'Courier Prime', 'Courier New', monospace; cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
+                ENTENDIDO
+            </button>
+        </div>
+    </div>
+    
     <h1>HUMAN.EXE</h1>
     
     <div id="ascii-container"></div>
@@ -434,6 +448,25 @@
     </div>
 
     <script>
+        // Mobile detection and notice
+        const mobileNotice = document.getElementById('mobile-notice');
+        const closeNoticeBtn = document.getElementById('close-notice');
+        
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                || window.innerWidth < 768;
+        }
+        
+        // Show notice on mobile
+        if (isMobileDevice()) {
+            mobileNotice.style.display = 'flex';
+        }
+        
+        // Close notice when button is clicked
+        closeNoticeBtn.addEventListener('click', () => {
+            mobileNotice.style.display = 'none';
+        });
+        
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -867,7 +900,7 @@
                 const scaledFontSize = fontSize * 2; // Font size for 4K
                 const charHeight = scaledFontSize * 1.2;
                 const totalAsciiHeight = lines.length * charHeight;
-                const captionSpacing = 180; // Reduced spacing for caption (was 360)
+                const captionSpacing = 240; // Increased spacing to accommodate larger gap (120px) + caption height
                 
                 // Center vertically with caption space
                 const startY = (2160 - totalAsciiHeight - captionSpacing) / 2;
@@ -942,12 +975,12 @@
                     });
                 }
                 
-                // Draw caption
+                // Draw caption with more top spacing
                 downloadCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
                 downloadCtx.font = '20px "Courier Prime", "Courier New", monospace'; // Doubled font size for 4K
                 downloadCtx.textAlign = 'center';
                 downloadCtx.textBaseline = 'top';
-                downloadCtx.fillText(captionText, 3840 / 2, startY + totalAsciiHeight + 60); // Reduced spacing (was 100)
+                downloadCtx.fillText(captionText, 3840 / 2, startY + totalAsciiHeight + 120); // Increased spacing for better breathing room
                 
                 // Clean up
                 document.body.removeChild(captureContainer);
