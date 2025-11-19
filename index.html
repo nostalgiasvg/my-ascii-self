@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASCII Webcam</title>
+    <title>HUMAN.EXE</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg width='329' height='329' viewBox='0 0 329 329' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='329' height='329' fill='black'/%3E%3Cpath d='M63 63H130.667V130.667H198.333V198.333H266V266H63V63Z' fill='white'/%3E%3C/svg%3E">
+    <!--
+ _   _           _        _       _         ______     ______ 
+| \ | | ___  ___| |_ __ _| | __ _(_) __ _  / ___\ \   / / ___|
+|  \| |/ _ \/ __| __/ _` | |/ _` | |/ _` | \___ \\ \ / / |  _ 
+| |\  | (_) \__ \ || (_| | | (_| | | (_| |_ ___) |\ V /| |_| |
+|_| \_|\___/|___/\__\__,_|_|\__, |_|\__,_(_)____/  \_/  \____|
+                            |___/                             
+    -->
     <style>
         * {
             margin: 0;
@@ -12,9 +21,9 @@
         }
 
         body {
-            background: #000;
+            background: #1a1a1af2;
             color: #fff;
-            font-family: 'Courier New', monospace;
+            font-family: 'Courier Prime', 'Courier New', monospace;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -28,97 +37,251 @@
             white-space: pre;
             line-height: 1;
             letter-spacing: 0;
-            font-size: 8px;
+            font-size: 10px;
             text-align: center;
-            margin: 20px auto;
+            margin: 20px 0 20px 0;
+            padding: 0 15px;
             max-width: 100%;
+            box-sizing: border-box;
             overflow: hidden;
+            transform-origin: center center;
         }
 
         .controls {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #fff;
+            top: 15px;
+            left: 0;
+            right: 0;
+            background: transparent;
+            padding: 15px;
+            border: none;
             z-index: 100;
-            max-width: 250px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: nowrap;
+            justify-content: center;
+            box-sizing: border-box;
         }
 
         .control-group {
-            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
         label {
-            display: block;
-            margin-bottom: 5px;
             font-size: 12px;
             color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         input[type="range"] {
-            width: 100%;
-            margin-bottom: 5px;
+            width: 100px;
+            height: 2px;
+            background: #fff;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            cursor: pointer;
+            border: none;
         }
 
         select, button {
-            width: 100%;
-            padding: 8px;
-            background: #000;
-            color: #fff;
-            border: 1px solid #fff;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
+            padding: 12px 24px;
+            background: #fff;
+            color: #1a1a1af2;
+            border: none;
+            font-family: 'Courier Prime', 'Courier New', monospace;
             cursor: pointer;
-            margin-bottom: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.2s;
         }
 
         button:hover, select:hover {
-            background: #fff;
-            color: #000;
+            transform: scale(0.98);
+        }
+
+        #copy-btn {
+            background: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+        }
+        
+        #download-btn, #fullscreen-btn {
+            background: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+        }
+        
+        #capture-btn {
+            background: transparent;
+            color: #fff;
+            border: 2px solid #fff;
+        }
+        
+        #fullscreen-btn {
+            font-size: 16px;
+            padding: 8px 16px;
+        }
+        
+        .countdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(26, 26, 26, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            font-size: 120px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px #1a1a1af2;
+        }
+        
+        .countdown-overlay.active {
+            display: flex;
         }
 
         #video {
             display: none;
+            transform: scaleX(-1);
         }
 
         canvas {
             display: none;
         }
+        
+        #download-canvas {
+            display: none;
+        }
 
         .value-display {
             color: #fff;
-            font-size: 11px;
-            margin-top: 2px;
+            font-size: 10px;
+            letter-spacing: 1px;
         }
 
         #start-btn {
-            font-size: 14px;
-            padding: 12px;
-            font-weight: bold;
+            font-size: 12px;
+            padding: 12px 24px;
+        }
+        
+        body.fullscreen-mode {
+            overflow: hidden;
+        }
+        
+        body.fullscreen-mode .controls,
+        body.fullscreen-mode .info,
+        body.fullscreen-mode h1 {
+            display: none !important;
+        }
+        
+        body.fullscreen-mode #ascii-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) !important;
+            width: auto !important;
+            height: auto !important;
+            max-width: 95vw;
+            max-height: 95vh;
+            margin: 0;
+            padding: 0;
+            z-index: 9999;
+            overflow: visible;
+            display: block !important;
+            white-space: pre !important;
+            line-height: 1 !important;
         }
 
         .info {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #fff;
-            font-size: 11px;
-            max-width: 300px;
+            background: transparent;
+            padding: 12px;
+            font-size: 10px;
+            max-width: 250px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .fullscreen-caption {
+            position: fixed;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: transparent;
+            padding: 12px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: none;
+            text-align: center;
+            z-index: 10000;
+            opacity: 0.8;
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        body.fullscreen-mode .fullscreen-caption {
+            display: block;
+        }
+        
+        .fullscreen-caption.typing {
+            animation: typing-caption 2s steps(40, end);
+        }
+        
+        @keyframes typing-caption {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
         }
 
         h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 24px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
             color: #fff;
-            text-shadow: 0 0 10px #fff;
-            min-height: 30px;
+            text-shadow: none;
+            min-height: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 1;
+            transition: opacity 0.3s;
+        }
+        
+        h1.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
         
         .cursor {
@@ -129,64 +292,145 @@
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0; }
         }
+
+        @media (max-width: 1024px) {
+            .controls {
+                padding: 12px;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            
+            input[type="range"] {
+                width: 80px;
+            }
+            
+            label {
+                font-size: 11px;
+            }
+            
+            select, button {
+                font-size: 11px;
+                padding: 10px 20px;
+            }
+        }
+        
+        @media (max-width: 900px) {
+            #copy-btn, #fullscreen-btn {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .controls {
+                padding: 10px;
+                gap: 8px;
+                top: 10px;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+            
+            .control-group {
+                flex: 1 1 45%;
+                min-width: 120px;
+            }
+            
+            input[type="range"] {
+                width: 100%;
+            }
+            
+            label {
+                font-size: 10px;
+            }
+            
+            select, button {
+                font-size: 10px;
+                padding: 8px 12px;
+            }
+            
+            #copy-btn, #fullscreen-btn {
+                display: none;
+            }
+            
+            #capture-btn {
+                flex: 1 1 100%;
+                width: 100%;
+            }
+            
+            #ascii-container {
+                margin: 120px 0 20px 0;
+            }
+            
+            .info {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>ASCII WEBCAM</h1>
+    <h1>HUMAN.EXE</h1>
     
     <div id="ascii-container"></div>
+    <div class="countdown-overlay" id="countdown-overlay">3</div>
     
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
+    <canvas id="download-canvas"></canvas>
     
     <div class="controls">
-        <button id="start-btn">INICIAR CÁMARA</button>
-        
         <div class="control-group">
-            <label for="resolution">Resolución</label>
-            <input type="range" id="resolution" min="40" max="200" value="120">
-            <div class="value-display" id="resolution-value">120</div>
+            <label for="charset">SET DE CARACTERES</label>
+            <select id="charset">
+                <option value="dense" data-short="DENSO">Denso (@ % # * + = - : .)</option>
+                <option value="simple" data-short="SIMPLE">Simple (█ ▓ ▒ ░  )</option>
+                <option value="classic" data-short="CLÁSICO">Clásico</option>
+                <option value="minimal" data-short="MINIMAL">Minimal (█ ▄ ▀  )</option>
+            </select>
         </div>
         
         <div class="control-group">
-            <label for="fontSize">Tamaño de fuente</label>
+            <label for="colorMode">MODO DE COLOR</label>
+            <select id="colorMode">
+                <option value="white">NOIR</option>
+                <option value="whiteblue">Blanco/Azul</option>
+                <option value="terminal">MECH'S ORANGE</option>
+                <option value="pink">Pink Retro</option>
+                <option value="greenscreen">NEO'S DREAM</option>
+                <option value="teletext">Teletexto</option>
+                <option value="color">FULL COLOR</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="scale">TAMAÑO</label>
+            <input type="range" id="scale" min="50" max="200" value="140">
+            <div class="value-display" id="scale-value">100%</div>
+        </div>
+        
+        <div class="control-group">
+            <label for="fontSize">FONT SIZE</label>
             <input type="range" id="fontSize" min="4" max="16" value="10">
             <div class="value-display" id="fontSize-value">10px</div>
         </div>
         
         <div class="control-group">
-            <label for="charset">Set de caracteres</label>
-            <select id="charset">
-                <option value="dense">Denso (@ % # * + = - : .)</option>
-                <option value="simple">Simple (█ ▓ ▒ ░  )</option>
-                <option value="classic">Clásico</option>
-                <option value="minimal">Minimal (█ ▄ ▀  )</option>
-            </select>
+            <label for="contrast">CONTRASTE</label>
+            <input type="range" id="contrast" min="50" max="200" value="160">
+            <div class="value-display" id="contrast-value">100%</div>
         </div>
         
-        <div class="control-group">
-            <label for="colorMode">Modo de color</label>
-            <select id="colorMode">
-                <option value="white">Blanco/Negro</option>
-                <option value="green">Verde terminal</option>
-                <option value="color">Color</option>
-                <option value="inverted">Invertido</option>
-            </select>
-        </div>
-        
-        <div class="control-group">
-            <label for="contrast">Contraste</label>
-            <input type="range" id="contrast" min="50" max="200" value="125">
-            <div class="value-display" id="contrast-value">125%</div>
-        </div>
-        
-        <button id="copy-btn">COPIAR ASCII</button>
+        <button id="capture-btn">CAPTURAR</button>
+        <button id="copy-btn">COPIAR</button>
+        <button id="fullscreen-btn">↗</button>
     </div>
     
     <div class="info">
-        <strong>ASCII Webcam Converter</strong><br>
-        De tu cámara en tiempo real a ASCII.<br><br>
-        Made with ❤️ by María Moreno
+        <strong>Quizá se trataba de reducir megapíxeles.</strong><br><br>
+        Atrevernos, de nuevo, a existir fuera del frame.<br><br>
+        Renderizar presencia y volver a bailar‑nos.
+    </div>
+    
+    <div class="fullscreen-caption" id="fullscreen-caption">
+        YOU ARE BEAUTIFUL IN ASCII
     </div>
 
     <script>
@@ -194,12 +438,16 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const asciiContainer = document.getElementById('ascii-container');
-        const startBtn = document.getElementById('start-btn');
         const copyBtn = document.getElementById('copy-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
         const h1 = document.querySelector('h1');
+        const downloadCanvas = document.getElementById('download-canvas');
+        const downloadCtx = downloadCanvas.getContext('2d');
+        const countdownOverlay = document.getElementById('countdown-overlay');
         
         // Typewriter effect for title
-        const titleText = 'ASCII WEBCAM';
+        const titleText = 'HUMAN.EXE';
         let titleIndex = 0;
         h1.textContent = '';
         
@@ -224,27 +472,254 @@
         };
         
         let currentCharset = charsets.dense;
-        let resolution = 120;
         let fontSize = 10;
+        let scale = 140; // Default 140 displayed as 100%
         let colorMode = 'white';
-        let contrast = 125;
+        let contrast = 160; // Default 160 displayed as 100%
         let isRunning = false;
         let stream = null;
         let currentAsciiText = '';
+        let isFullscreen = false;
+        let lastBrightness = 0;
+        let motionDetected = false;
+        let captionInterval = null;
+        let lastPalmDetectionTime = 0;
+        let palmDetectionCooldown = 5000; // 5 seconds cooldown between captures
         
-        // Set initial font size
+        // Palm detection: detects large bright area in center (typical of palm facing camera)
+        function detectPalm() {
+            if (!isFullscreen || !isRunning) return false;
+            
+            // Sample center region of camera
+            const centerX = Math.floor(canvas.width / 2);
+            const centerY = Math.floor(canvas.height / 2);
+            const sampleSize = Math.min(canvas.width, canvas.height) * 0.3; // 30% of frame
+            
+            const imageData = ctx.getImageData(
+                centerX - sampleSize / 2,
+                centerY - sampleSize / 2,
+                sampleSize,
+                sampleSize
+            );
+            
+            const pixels = imageData.data;
+            let brightPixels = 0;
+            let totalPixels = pixels.length / 4;
+            let skinTonePixels = 0;
+            
+            // Count bright pixels and skin-tone pixels
+            for (let i = 0; i < pixels.length; i += 4) {
+                const r = pixels[i];
+                const g = pixels[i + 1];
+                const b = pixels[i + 2];
+                const brightness = (r + g + b) / 3;
+                
+                // Bright pixel threshold
+                if (brightness > 140) {
+                    brightPixels++;
+                }
+                
+                // Skin tone detection (rough approximation)
+                if (r > 95 && g > 40 && b > 20 && 
+                    r > g && r > b && 
+                    Math.abs(r - g) > 15) {
+                    skinTonePixels++;
+                }
+            }
+            
+            const brightPercentage = (brightPixels / totalPixels) * 100;
+            const skinPercentage = (skinTonePixels / totalPixels) * 100;
+            
+            // Palm detected if large bright area with skin tones in center
+            return brightPercentage > 60 && skinPercentage > 20;
+        }
+        
+        // Fun caption messages based on scene detection
+        const captions = {
+            bright: [
+                "BATHED IN LIGHT",
+                "LUMINOUS BEING DETECTED",
+                "BRIGHTNESS LEVEL: STELLAR",
+                "YOU SHINE IN PIXELS"
+            ],
+            dark: [
+                "EMBRACING THE SHADOWS",
+                "MYSTERIOUS VIBES",
+                "NOIR MODE: ACTIVATED",
+                "DARKNESS BECOMES YOU"
+            ],
+            moving: [
+                "MOTION DETECTED",
+                "DANCING IN ASCII",
+                "ENERGY IN MOTION",
+                "YOU'RE ALIVE"
+            ],
+            still: [
+                "CONTEMPLATIVE MODE",
+                "PERFECTLY STILL",
+                "ZEN MASTER DETECTED",
+                "TIME STANDS STILL"
+            ],
+            normal: [
+                "YOU ARE BEAUTIFUL IN ASCII",
+                "PIXEL PERFECT",
+                "RENDERING HUMAN.EXE",
+                "CONVERTING SOUL TO TEXT",
+                "ANALOG TO DIGITAL",
+                "YOU EXIST IN CHARACTERS",
+                "HUMAN DETECTED",
+                "SCANNING AURA...",
+                "PRESENCE ACKNOWLEDGED"
+            ]
+        };
+        
+        function detectSceneAndUpdateCaption() {
+            if (!isFullscreen || !isRunning) return;
+            
+            // Analyze current frame
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            let totalBrightness = 0;
+            let pixelCount = pixels.length / 4;
+            
+            // Calculate average brightness
+            for (let i = 0; i < pixels.length; i += 4) {
+                const r = pixels[i];
+                const g = pixels[i + 1];
+                const b = pixels[i + 2];
+                totalBrightness += (r + g + b) / 3;
+            }
+            
+            const avgBrightness = totalBrightness / pixelCount;
+            
+            // Detect motion by comparing brightness change
+            const brightnessChange = Math.abs(avgBrightness - lastBrightness);
+            motionDetected = brightnessChange > 5;
+            lastBrightness = avgBrightness;
+            
+            // Choose caption category
+            let category = 'normal';
+            if (avgBrightness > 180) {
+                category = 'bright';
+            } else if (avgBrightness < 60) {
+                category = 'dark';
+            } else if (motionDetected) {
+                category = 'moving';
+            } else if (brightnessChange < 2) {
+                category = 'still';
+            }
+            
+            // Random message from category
+            const messages = captions[category];
+            const message = messages[Math.floor(Math.random() * messages.length)];
+            
+            const captionElement = document.getElementById('fullscreen-caption');
+            if (captionElement.textContent !== message) {
+                // Fade out
+                captionElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    // Wrap in span for typewriter effect
+                    captionElement.innerHTML = `<span>${message}</span>`;
+                    const textSpan = captionElement.querySelector('span');
+                    
+                    // Reset and trigger typewriter animation
+                    textSpan.style.display = 'inline-block';
+                    textSpan.style.overflow = 'hidden';
+                    textSpan.style.whiteSpace = 'nowrap';
+                    textSpan.style.width = '0';
+                    textSpan.style.animation = 'none';
+                    
+                    // Fade in container
+                    captionElement.style.opacity = '0.8';
+                    
+                    // Trigger animation
+                    setTimeout(() => {
+                        textSpan.style.animation = 'typing-caption 1.5s steps(40, end) forwards';
+                    }, 10);
+                }, 300);
+            }
+        }
+        
+        // Set initial font size and scale
         asciiContainer.style.fontSize = fontSize + 'px';
+        asciiContainer.style.transform = `scale(${scale / 100})`;
+        
+        // Auto-start camera on load
+        startCamera();
+        
+        // Handle responsive charset text
+        function updateCharsetText() {
+            const charsetSelect = document.getElementById('charset');
+            const options = charsetSelect.querySelectorAll('option');
+            const isTabletOrSmaller = window.innerWidth <= 1024;
+            
+            options.forEach(option => {
+                if (isTabletOrSmaller && option.dataset.short) {
+                    option.textContent = option.dataset.short;
+                } else {
+                    // Restore full text
+                    const value = option.value;
+                    switch(value) {
+                        case 'dense':
+                            option.textContent = 'Denso (@ % # * + = - : .)';
+                            break;
+                        case 'simple':
+                            option.textContent = 'Simple (█ ▓ ▒ ░  )';
+                            break;
+                        case 'classic':
+                            option.textContent = 'Clásico';
+                            break;
+                        case 'minimal':
+                            option.textContent = 'Minimal (█ ▄ ▀  )';
+                            break;
+                    }
+                }
+            });
+        }
+        
+        // Initial call
+        updateCharsetText();
+        
+        // Update on resize
+        window.addEventListener('resize', updateCharsetText);
+        
+        // Function to calculate optimal resolution based on viewport and font size
+        function calculateResolution() {
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const controlsHeight = 80; // approximate height of controls
+            const horizontalPadding = 30; // 15px on each side, same as controls
+            
+            // Calculate available space - subtract padding to match controls
+            const availableWidth = viewportWidth - horizontalPadding;
+            const availableHeight = (viewportHeight - controlsHeight) * 0.85;
+            
+            // Calculate how many characters can fit
+            const charWidth = fontSize * 0.6; // approximate character width
+            const charHeight = fontSize;
+            
+            const resolution = Math.floor(Math.min(
+                availableWidth / charWidth,
+                availableHeight / charHeight * 2 // multiply by 2 for aspect ratio
+            ));
+            
+            return Math.max(100, Math.min(500, resolution));
+        }
         
         // Controls
-        document.getElementById('resolution').addEventListener('input', (e) => {
-            resolution = parseInt(e.target.value);
-            document.getElementById('resolution-value').textContent = resolution;
-        });
-        
         document.getElementById('fontSize').addEventListener('input', (e) => {
             fontSize = parseInt(e.target.value);
             document.getElementById('fontSize-value').textContent = fontSize + 'px';
             asciiContainer.style.fontSize = fontSize + 'px';
+        });
+        
+        document.getElementById('scale').addEventListener('input', (e) => {
+            scale = parseInt(e.target.value);
+            // Normalize display: 140 = 100%, so divide by 1.4
+            const displayValue = Math.round((scale / 140) * 100);
+            document.getElementById('scale-value').textContent = displayValue + '%';
+            asciiContainer.style.transform = `scale(${scale / 100})`;
         });
         
         document.getElementById('charset').addEventListener('change', (e) => {
@@ -259,7 +734,9 @@
         
         document.getElementById('contrast').addEventListener('input', (e) => {
             contrast = parseInt(e.target.value);
-            document.getElementById('contrast-value').textContent = contrast + '%';
+            // Normalize display: 160 = 100%, so divide by 1.6
+            const displayValue = Math.round((contrast / 160) * 100);
+            document.getElementById('contrast-value').textContent = displayValue + '%';
         });
         
         copyBtn.addEventListener('click', () => {
@@ -267,50 +744,519 @@
                 navigator.clipboard.writeText(currentAsciiText).then(() => {
                     const originalText = copyBtn.textContent;
                     copyBtn.textContent = '✓ COPIADO';
-                    copyBtn.style.background = '#0f0';
-                    copyBtn.style.color = '#000';
+                    copyBtn.style.background = '#fff';
+                    copyBtn.style.color = '#1a1a1af2';
+                    copyBtn.style.border = '2px solid #fff';
                     setTimeout(() => {
                         copyBtn.textContent = originalText;
-                        copyBtn.style.background = '#000';
+                        copyBtn.style.background = 'transparent';
                         copyBtn.style.color = '#fff';
+                        copyBtn.style.border = '2px solid #fff';
                     }, 2000);
                 }).catch(err => {
                     console.error('Error al copiar:', err);
                     alert('No se pudo copiar al portapapeles');
                 });
             } else {
-                alert('No hay contenido ASCII para copiar. Inicia la cámara primero.');
+                alert('No hay contenido ASCII para copiar.');
             }
         });
         
-        function updateColorMode() {
-            switch(colorMode) {
-                case 'green':
-                    document.body.style.background = '#000';
-                    asciiContainer.style.color = '#0f0';
-                    break;
-                case 'white':
-                    document.body.style.background = '#000';
-                    asciiContainer.style.color = '#fff';
-                    break;
-                case 'color':
-                    document.body.style.background = '#000';
-                    asciiContainer.style.color = '';
-                    break;
-                case 'inverted':
-                    document.body.style.background = '#fff';
-                    asciiContainer.style.color = '#000';
-                    break;
+        captureBtn.addEventListener('click', () => {
+            if (!currentAsciiText) {
+                alert('No hay contenido para capturar.');
+                return;
+            }
+            
+            // Start countdown
+            let count = 3;
+            countdownOverlay.textContent = count;
+            countdownOverlay.classList.add('active');
+            
+            const countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownOverlay.textContent = count;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownOverlay.classList.remove('active');
+                    
+                    // Capture after countdown
+                    captureImage();
+                }
+            }, 1000);
+        });
+        
+        function captureImage() {
+            // Special handling for fullscreen mode - capture as seen on screen
+            if (isFullscreen) {
+                // Create a container that mimics the fullscreen layout
+                const captureContainer = document.createElement('div');
+                captureContainer.style.position = 'fixed';
+                captureContainer.style.left = '-9999px';
+                captureContainer.style.top = '0';
+                captureContainer.style.width = '1920px'; // Standard HD width
+                captureContainer.style.height = '1080px'; // Standard HD height
+                captureContainer.style.background = getComputedStyle(document.body).background;
+                captureContainer.style.display = 'flex';
+                captureContainer.style.flexDirection = 'column';
+                captureContainer.style.alignItems = 'center';
+                captureContainer.style.justifyContent = 'center';
+                captureContainer.style.padding = '80px';
+                captureContainer.style.boxSizing = 'border-box';
+                document.body.appendChild(captureContainer);
+                
+                // Clone ASCII content
+                const asciiClone = document.createElement('div');
+                asciiClone.style.fontFamily = '"Courier Prime", "Courier New", monospace';
+                asciiClone.style.fontSize = fontSize + 'px';
+                asciiClone.style.lineHeight = '1';
+                asciiClone.style.whiteSpace = 'pre';
+                asciiClone.style.color = getComputedStyle(asciiContainer).color;
+                asciiClone.style.textAlign = 'center';
+                asciiClone.innerHTML = asciiContainer.innerHTML;
+                captureContainer.appendChild(asciiClone);
+                
+                // Add caption
+                const captionElement = document.getElementById('fullscreen-caption');
+                const captionText = captionElement.querySelector('span')?.textContent || captionElement.textContent;
+                const captionClone = document.createElement('div');
+                captionClone.style.fontFamily = '"Courier Prime", "Courier New", monospace';
+                captionClone.style.fontSize = '10px';
+                captionClone.style.color = '#fff';
+                captionClone.style.textTransform = 'uppercase';
+                captionClone.style.letterSpacing = '1px';
+                captionClone.style.marginTop = '180px';
+                captionClone.style.textAlign = 'center';
+                captionClone.style.opacity = '0.8';
+                captionClone.textContent = captionText;
+                captureContainer.appendChild(captionClone);
+                
+                // Measure and create canvas at 4K resolution
+                const containerRect = captureContainer.getBoundingClientRect();
+                downloadCanvas.width = 3840; // 4K width for higher resolution
+                downloadCanvas.height = 2160; // 4K height for higher resolution
+                
+                // Draw background
+                let bgColor;
+                switch(colorMode) {
+                    case 'white':
+                    case 'color':
+                        bgColor = '#1a1a1af2';
+                        break;
+                    case 'whiteblue':
+                        bgColor = '#304BD3';
+                        break;
+                    case 'terminal':
+                    case 'pink':
+                    case 'greenscreen':
+                        bgColor = '#0A0A0A';
+                        break;
+                    case 'teletext':
+                        bgColor = '#000000';
+                        break;
+                    default:
+                        bgColor = '#1a1a1af2';
+                }
+                
+                downloadCtx.fillStyle = bgColor;
+                downloadCtx.fillRect(0, 0, downloadCanvas.width, downloadCanvas.height);
+                
+                // Draw ASCII content - calculate actual dimensions at 2x font size
+                const lines = asciiClone.textContent.split('\n').filter(line => line.length > 0);
+                const scaledFontSize = fontSize * 2; // Font size for 4K
+                const charHeight = scaledFontSize * 1.2;
+                const totalAsciiHeight = lines.length * charHeight;
+                const captionSpacing = 180; // Reduced spacing for caption (was 360)
+                
+                // Center vertically with caption space
+                const startY = (2160 - totalAsciiHeight - captionSpacing) / 2;
+                
+                if (colorMode === 'color') {
+                    // Draw colored ASCII
+                    const spans = asciiClone.querySelectorAll('span');
+                    
+                    downloadCtx.font = `${scaledFontSize}px "Courier Prime", "Courier New", monospace`;
+                    downloadCtx.textBaseline = 'top';
+                    
+                    // Measure character size
+                    downloadCtx.fillStyle = '#fff';
+                    const metrics = downloadCtx.measureText('M');
+                    const charWidth = metrics.width;
+                    
+                    let charCount = 0;
+                    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+                        const line = lines[lineIdx];
+                        const lineWidth = line.length * charWidth;
+                        const lineStartX = (3840 - lineWidth) / 2; // center horizontally for 4K
+                        
+                        for (let charIdx = 0; charIdx < line.length; charIdx++) {
+                            const char = line[charIdx];
+                            if (spans[charCount]) {
+                                const color = spans[charCount].style.color;
+                                downloadCtx.fillStyle = color || '#fff';
+                            }
+                            downloadCtx.fillText(char, lineStartX + charIdx * charWidth, startY + lineIdx * charHeight);
+                            charCount++;
+                        }
+                    }
+                } else {
+                    // Draw monochrome ASCII
+                    const lines = currentAsciiText.split('\n').filter(line => line.length > 0);
+                    
+                    let textColor;
+                    switch(colorMode) {
+                        case 'white':
+                            textColor = '#fff';
+                            break;
+                        case 'whiteblue':
+                            textColor = '#FFFFFF';
+                            break;
+                        case 'terminal':
+                            textColor = '#FF9500';
+                            break;
+                        case 'pink':
+                            textColor = '#FF69B4';
+                            break;
+                        case 'greenscreen':
+                            textColor = '#00FF41';
+                            break;
+                        case 'teletext':
+                            textColor = '#00FFFF';
+                            break;
+                        default:
+                            textColor = '#fff';
+                    }
+                    
+                    downloadCtx.fillStyle = textColor;
+                    downloadCtx.font = `${scaledFontSize}px "Courier Prime", "Courier New", monospace`;
+                    downloadCtx.textBaseline = 'top';
+                    
+                    const metrics = downloadCtx.measureText('M');
+                    const charWidth = metrics.width;
+                    
+                    lines.forEach((line, i) => {
+                        const lineWidth = line.length * charWidth;
+                        const lineStartX = (3840 - lineWidth) / 2; // center horizontally for 4K
+                        downloadCtx.fillText(line, lineStartX, startY + i * charHeight);
+                    });
+                }
+                
+                // Draw caption
+                downloadCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                downloadCtx.font = '20px "Courier Prime", "Courier New", monospace'; // Doubled font size for 4K
+                downloadCtx.textAlign = 'center';
+                downloadCtx.textBaseline = 'top';
+                downloadCtx.fillText(captionText, 3840 / 2, startY + totalAsciiHeight + 60); // Reduced spacing (was 100)
+                
+                // Clean up
+                document.body.removeChild(captureContainer);
+                
+            } else {
+                // Normal mode (non-fullscreen) - original high-res code
+                const scaleFactor = 2;
+                
+                if (colorMode === 'color') {
+                    const tempContainer = document.createElement('div');
+                    tempContainer.style.position = 'fixed';
+                    tempContainer.style.left = '-9999px';
+                    tempContainer.style.top = '0';
+                    tempContainer.style.background = '#1a1a1af2';
+                    tempContainer.style.padding = '0';
+                    tempContainer.style.fontFamily = '"Courier Prime", "Courier New", monospace';
+                    tempContainer.style.fontSize = (fontSize * scaleFactor) + 'px';
+                    tempContainer.style.lineHeight = '1';
+                    tempContainer.style.whiteSpace = 'pre';
+                    tempContainer.innerHTML = asciiContainer.innerHTML;
+                    document.body.appendChild(tempContainer);
+                    
+                    const rect = tempContainer.getBoundingClientRect();
+                    downloadCanvas.width = rect.width;
+                    downloadCanvas.height = rect.height;
+                    
+                    downloadCtx.fillStyle = '#1a1a1af2';
+                    downloadCtx.fillRect(0, 0, downloadCanvas.width, downloadCanvas.height);
+                    
+                    const spans = tempContainer.querySelectorAll('span');
+                    const lines = tempContainer.textContent.split('\n');
+                    
+                    downloadCtx.font = `${fontSize * scaleFactor}px "Courier Prime", "Courier New", monospace`;
+                    downloadCtx.textBaseline = 'top';
+                    
+                    const tempSpan = document.createElement('span');
+                    tempSpan.style.font = `${fontSize * scaleFactor}px "Courier Prime", "Courier New", monospace`;
+                    tempSpan.style.visibility = 'hidden';
+                    tempSpan.textContent = 'M';
+                    document.body.appendChild(tempSpan);
+                    const charWidth = tempSpan.offsetWidth;
+                    const charHeight = tempSpan.offsetHeight;
+                    document.body.removeChild(tempSpan);
+                    
+                    let charCount = 0;
+                    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+                        const line = lines[lineIdx];
+                        for (let charIdx = 0; charIdx < line.length; charIdx++) {
+                            const char = line[charIdx];
+                            if (spans[charCount]) {
+                                const color = spans[charCount].style.color;
+                                downloadCtx.fillStyle = color;
+                            }
+                            downloadCtx.fillText(char, charIdx * charWidth, lineIdx * charHeight);
+                            charCount++;
+                        }
+                    }
+                    
+                    document.body.removeChild(tempContainer);
+                    
+                } else {
+                    const lines = currentAsciiText.split('\n').filter(line => line.length > 0);
+                    const maxLineLength = Math.max(...lines.map(line => line.length));
+                    
+                    const tempSpan = document.createElement('span');
+                    tempSpan.style.font = `${fontSize * scaleFactor}px "Courier Prime", "Courier New", monospace`;
+                    tempSpan.style.visibility = 'hidden';
+                    tempSpan.style.position = 'absolute';
+                    tempSpan.textContent = 'M';
+                    document.body.appendChild(tempSpan);
+                    
+                    const charWidth = tempSpan.offsetWidth;
+                    const charHeight = tempSpan.offsetHeight;
+                    document.body.removeChild(tempSpan);
+                    
+                    downloadCanvas.width = maxLineLength * charWidth;
+                    downloadCanvas.height = lines.length * charHeight;
+                    
+                    let bgColor, textColor;
+                    switch(colorMode) {
+                        case 'white':
+                            bgColor = '#1a1a1af2';
+                            textColor = '#fff';
+                            break;
+                        case 'whiteblue':
+                            bgColor = '#304BD3';
+                            textColor = '#FFFFFF';
+                            break;
+                        case 'terminal':
+                            bgColor = '#0A0A0A';
+                            textColor = '#FF9500';
+                            break;
+                        case 'pink':
+                            bgColor = '#0A0A0A';
+                            textColor = '#FF69B4';
+                            break;
+                        case 'greenscreen':
+                            bgColor = '#0A0A0A';
+                            textColor = '#00FF41';
+                            break;
+                        case 'teletext':
+                            bgColor = '#000000';
+                            textColor = '#00FFFF';
+                            break;
+                        default:
+                            bgColor = '#1a1a1af2';
+                            textColor = '#fff';
+                    }
+                    
+                    downloadCtx.fillStyle = bgColor;
+                    downloadCtx.fillRect(0, 0, downloadCanvas.width, downloadCanvas.height);
+                    
+                    downloadCtx.fillStyle = textColor;
+                    downloadCtx.font = `${fontSize * scaleFactor}px "Courier Prime", "Courier New", monospace`;
+                    downloadCtx.textBaseline = 'top';
+                    
+                    lines.forEach((line, i) => {
+                        downloadCtx.fillText(line, 0, i * charHeight);
+                    });
+                }
+            }
+            
+            // Download as PNG
+            downloadCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = generateRandomFilename();
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        // Generate random filename from various naming patterns
+        function generateRandomFilename() {
+            const now = new Date();
+            const timestamp = Date.now();
+            const dateCode = now.toISOString().slice(0,10).replace(/-/g, '');
+            const timeCode = now.toTimeString().slice(0,8).replace(/:/g, '');
+            const randomHash = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const randomNum = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+            const hexCode = Math.floor(Math.random() * 0xFFFFFF).toString(16).toUpperCase().padStart(6, '0');
+            
+            const patterns = [
+                // Sistema de archivos
+                `human_backup_${timestamp}`,
+                `human_snapshot_${dateCode}`,
+                `human_v${randomNum}`,
+                
+                // Proceso de conversión
+                `human_to_machine_${randomHash}`,
+                `rendered_human_${hexCode}`,
+                `compiled_self_${randomHash}`,
+                
+                // Logs/Registros
+                `human_log_${dateCode}_${timeCode.replace(/:/g, '')}`,
+                `selfie.exe_${randomNum}`,
+                `identity_cache_${randomHash}`,
+                
+                // Poética/Mística
+                `digital_soul_${randomNum}`,
+                `pixelated_presence_${randomHash}`,
+                `human_echo_${timestamp}`,
+                
+                // Minimalista técnico
+                `HUMAN_${dateCode}_${timeCode.replace(/:/g, '')}`,
+                `HMN_${hexCode}`,
+                `usr_${randomHash.toLowerCase()}`,
+                
+                // Extra variations
+                `self_portrait_${randomHash}`,
+                `human_frame_${randomNum}`,
+                `digital_trace_${hexCode}`,
+                `consciousness_backup_${timestamp}`,
+                `pixel_identity_${randomHash}`
+            ];
+            
+            const selectedPattern = patterns[Math.floor(Math.random() * patterns.length)];
+            return `${selectedPattern}.png`;
+        }
+        
+        fullscreenBtn.addEventListener('click', () => {
+            if (!isFullscreen) {
+                // Request native fullscreen on the document element
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+                isFullscreen = true;
+                document.body.classList.add('fullscreen-mode');
+                
+                // Calculate and apply scale to fill screen
+                setTimeout(() => {
+                    scaleToFillScreen();
+                }, 100);
+                
+                // Start caption updates every 5 seconds
+                captionInterval = setInterval(detectSceneAndUpdateCaption, 5000);
+                detectSceneAndUpdateCaption(); // Initial caption
+            }
+        });
+        
+        function scaleToFillScreen() {
+            if (!isFullscreen) return;
+            
+            // Small delay to let the fullscreen transition complete
+            setTimeout(() => {
+                // Get the natural size of the ASCII content
+                const containerWidth = asciiContainer.scrollWidth;
+                const containerHeight = asciiContainer.scrollHeight;
+                
+                // Get viewport dimensions
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // Calculate scale to fill screen while maintaining aspect ratio
+                const scaleX = viewportWidth / containerWidth;
+                const scaleY = viewportHeight / containerHeight;
+                const scaleFactor = Math.min(scaleX, scaleY) * 0.9; // 90% to leave margin
+                
+                // Apply the scale with centering transform
+                asciiContainer.style.transform = `translate(-50%, -50%) scale(${scaleFactor})`;
+                asciiContainer.style.transformOrigin = 'center center';
+            }, 50);
+        }
+        
+        // Listen for ESC key or fullscreen change to exit fullscreen mode
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isFullscreen) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                isFullscreen = false;
+                document.body.classList.remove('fullscreen-mode');
+            }
+        });
+        
+        // Handle fullscreen change events (when user exits with ESC or browser controls)
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement && 
+                !document.webkitFullscreenElement && 
+                !document.mozFullScreenElement && 
+                !document.msFullscreenElement) {
+                isFullscreen = false;
+                document.body.classList.remove('fullscreen-mode');
+                
+                // Restore original scale
+                asciiContainer.style.transform = `scale(${scale / 100})`;
+                asciiContainer.style.transformOrigin = 'center center';
+                // Stop caption updates
+                if (captionInterval) {
+                    clearInterval(captionInterval);
+                    captionInterval = null;
+                }
             }
         }
         
-        startBtn.addEventListener('click', async () => {
-            if (!isRunning) {
-                await startCamera();
-            } else {
-                stopCamera();
+        function updateColorMode() {
+            switch(colorMode) {
+                case 'white':
+                    document.body.style.background = '#1a1a1af2';
+                    asciiContainer.style.color = '#fff';
+                    break;
+                case 'color':
+                    document.body.style.background = '#1a1a1af2';
+                    asciiContainer.style.color = '';
+                    break;
+                case 'whiteblue':
+                    document.body.style.background = '#304BD3';
+                    asciiContainer.style.color = '#FFFFFF';
+                    break;
+                case 'terminal':
+                    // Terminal orange/amber with same black as greenscreen
+                    document.body.style.background = '#0A0A0A';
+                    asciiContainer.style.color = '#FF9500';
+                    break;
+                case 'pink':
+                    // Pink/magenta retro with same black as greenscreen
+                    document.body.style.background = '#0A0A0A';
+                    asciiContainer.style.color = '#FF69B4';
+                    break;
+                case 'greenscreen':
+                    // Classic green screen
+                    document.body.style.background = '#0A0A0A';
+                    asciiContainer.style.color = '#00FF41';
+                    break;
+                case 'teletext':
+                    // Teletexto español - negro puro con colores saturados
+                    document.body.style.background = '#000000';
+                    asciiContainer.style.color = '#00FFFF'; // Cyan saturado
+                    break;
             }
-        });
+        }
         
         async function startCamera() {
             try {
@@ -326,10 +1272,10 @@
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                     isRunning = true;
-                    startBtn.textContent = 'DETENER CÁMARA';
-                    startBtn.style.background = '#f00';
-                    startBtn.style.borderColor = '#f00';
-                    startBtn.style.color = '#fff';
+                    
+                    // Hide title when camera starts
+                    h1.classList.add('hidden');
+                    
                     render();
                 });
             } catch (err) {
@@ -338,25 +1284,16 @@
             }
         }
         
-        function stopCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            isRunning = false;
-            startBtn.textContent = 'INICIAR CÁMARA';
-            startBtn.style.background = '#000';
-            startBtn.style.borderColor = '#fff';
-            startBtn.style.color = '#fff';
-            asciiContainer.textContent = '';
-            currentAsciiText = '';
-        }
-        
         function render() {
             if (!isRunning) return;
             
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Flip the canvas horizontally (mirror effect)
+            ctx.save();
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+            ctx.restore();
             
+            const resolution = calculateResolution();
             const asciiWidth = resolution;
             const asciiHeight = Math.floor(resolution * (canvas.height / canvas.width) * 0.5);
             
@@ -397,7 +1334,39 @@
             asciiContainer.innerHTML = asciiImage;
             currentAsciiText = plainTextAscii;
             
+            // Check for palm gesture in fullscreen mode
+            if (isFullscreen) {
+                const now = Date.now();
+                if (now - lastPalmDetectionTime > palmDetectionCooldown) {
+                    if (detectPalm()) {
+                        lastPalmDetectionTime = now;
+                        // Trigger capture with countdown
+                        triggerPalmCapture();
+                    }
+                }
+            }
+            
             requestAnimationFrame(render);
+        }
+        
+        function triggerPalmCapture() {
+            // Start countdown
+            let count = 3;
+            countdownOverlay.textContent = count;
+            countdownOverlay.classList.add('active');
+            
+            const countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownOverlay.textContent = count;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownOverlay.classList.remove('active');
+                    
+                    // Capture after countdown
+                    captureImage();
+                }
+            }, 1000);
         }
     </script>
 </body>
